@@ -11,3 +11,6 @@ test-coverage: ## run test coverage with coverage output.
 
 print-go-version:
 	@go version
+
+build-release:
+	go build -o ./bin/kqueuey ./cmd

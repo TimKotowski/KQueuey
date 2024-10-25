@@ -1,4 +1,7 @@
 .idea
-vendor
 
+vendor
 coverage.txt
+
+# Binaries built from ./cmd
+bin

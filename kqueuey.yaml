@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kqueuey-deployment
+  labels:
+    app: kqueuey
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kqueuey
+  template:
+    metadata:
+      labels:
+        app: kqueuey
+    spec:
+      containers:
+        - name: kqueuey
+          image: kqueuey:latest
