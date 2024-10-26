@@ -13,7 +13,7 @@ RUN go build -o kqueuey ./cmd
 
 FROM debian:12
 
-RUN useradd -d /home/kqueuey -u 777 kqueuey
+RUN useradd -m -u 777 kqueuey
 
 COPY --from=builder /build/kqueuey /
 

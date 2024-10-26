@@ -3,7 +3,7 @@ services:
   kqueuey:
     image: Dockerfile
     volumes:
-      - kqueuey-store:/var/lib/kqueuey-store
+      - ./kqueuey-config.yaml:/var/lib/kqueuey-config.yaml
 
 configs:
   data:

@@ -1,0 +1,17 @@
+badgerDB:
+  kv-store-path:
+    - path1
+    - path2
+    - path3
+  num-compactors: 8
+  compression-type: Snappy
+  sync-writes: false
+
+raft:
+  nodes:
+    - node_id: 1
+      bind_addr: 12:1111
+    - node_id: 2
+      bind_addr: 12:1212
+    - node_id: 3
+      bind_addr: 12:1313
