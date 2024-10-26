@@ -16,6 +16,7 @@ const (
 	CompressionZSTD   = "ZSTD"
 )
 
+//lint:ignore U1000 Ignore unused function temporarily.
 func checkCompressionType(compressionType string) CompressionOrdinal {
 	if compressionType == CompressionNone {
 		return None

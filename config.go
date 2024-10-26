@@ -62,7 +62,7 @@ func getViper() *viper.Viper {
 	// Testing path.
 	if TestFlag == 1 {
 		homeDir, _ := os.UserHomeDir()
-		v.AddConfigPath(fmt.Sprintf("%s", homeDir))
+		v.AddConfigPath(homeDir)
 		v.AddConfigPath("/integration/")
 	} else {
 		// Currently acceptable paths to obtain kqueuey config.
