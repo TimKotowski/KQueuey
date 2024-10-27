@@ -3,7 +3,6 @@ package kqueuey
 import (
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -15,7 +14,7 @@ var (
 
 	errConfigFileNotLocated   = fmt.Errorf("config file not found, valid paths: %v", SearchPaths)
 	errDuplicateStoragePath   = errors.New("storage path must be unique per node to avoid file locking conflicts")
-	errDuplicateNodeID        = errors.New("node id must be unique per node to conform to rafts consensus protocol")
+	errDuplicateNodeId        = errors.New("node id must be unique per node to conform to rafts consensus protocol")
 	errDuplicateNodePort      = errors.New("node port most be unique to allow proper communication between nodes")
 	errNodeIdNotFound         = errors.New("node id not found")
 	errNodeStorageDirNotFound = errors.New("node storage directory not found")
@@ -45,7 +44,7 @@ type BadgerDBConfig struct {
 }
 
 type RaftConfig struct {
-	ClusterID string       `mapstructure:"cluster_id"`
+	ClusterId string       `mapstructure:"cluster_id"`
 	Nodes     []NodeConfig `mapstructure:"nodes"`
 }
 
@@ -80,16 +79,8 @@ func initializeViper() *viper.Viper {
 	v.SetConfigType(ConfigType)
 	v.SetConfigName(ConfigFileName)
 
-	if TestFlag == 1 {
-		pwd, err := os.Getwd()
-		if err == nil {
-			v.AddConfigPath(pwd + "/integration/")
-		}
-		v.AddConfigPath(".")
-	} else {
-		for _, path := range SearchPaths {
-			v.AddConfigPath(path)
-		}
+	for _, path := range SearchPaths {
+		v.AddConfigPath(path)
 	}
 
 	return v
@@ -114,7 +105,7 @@ func (c *Configuration) validate() error {
 }
 
 func (r *RaftConfig) validateRaftConfigOptions() error {
-	if r.ClusterID == "" {
+	if r.ClusterId == "" {
 		return errRaftClusterIdNotFound
 	}
 
@@ -135,7 +126,7 @@ func (r *RaftConfig) validateRaftConfigOptions() error {
 
 		duplicates[node.Id] += 1
 		if duplicates[node.Id] >= 2 {
-			return errDuplicateNodeID
+			return errDuplicateNodeId
 		}
 
 		splitAddr := strings.Split(node.BindAddr, ":")
