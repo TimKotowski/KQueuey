@@ -59,10 +59,6 @@ func LoadConfiguration() (*Configuration, error) {
 	v := initializeViper()
 
 	if err := v.ReadInConfig(); err != nil {
-		return nil, err
-	}
-
-	if v.ConfigFileUsed() == "" {
 		return nil, errConfigFileNotLocated
 	}
 
