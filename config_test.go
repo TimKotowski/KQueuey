@@ -32,7 +32,7 @@ type ConfigTest struct {
 
 func TestViperConfig(t *testing.T) {
 	t.Run("read and parse kqueuey config with all correct values ", func(t *testing.T) {
-		defer configFileCleanUp()
+		defer cleanUp()
 
 		TestFlag = 1
 		expectedStorageConfig := StorageConfigTest{NumCompactors: 1, CompressionType: "snappy", SyncWrites: false}
@@ -58,7 +58,7 @@ func TestViperConfig(t *testing.T) {
 				},
 			},
 		}
-		setUpTestConfigFile(t, expectedStorageConfig, expectedRaftConfig)
+		initFile(t, expectedStorageConfig, expectedRaftConfig)
 		config, err := LoadConfiguration()
 		assert.NoError(t, err)
 		assert.EqualValues(t, expectedStorageConfig.SyncWrites, config.BadgerOpts.SyncWrites)
@@ -88,7 +88,7 @@ func TestViperConfig(t *testing.T) {
 		assert.Equal(t, expectedNodeThree.StorageDir, actualNodeThree.StorageDir)
 	})
 	t.Run("kqueuey configuration file validation failed due to duplicate node id", func(t *testing.T) {
-		defer configFileCleanUp()
+		defer cleanUp()
 		TestFlag = 1
 
 		expectedStorageConfig := StorageConfigTest{NumCompactors: 1, CompressionType: "snappy", SyncWrites: false}
@@ -114,7 +114,7 @@ func TestViperConfig(t *testing.T) {
 				},
 			},
 		}
-		setUpTestConfigFile(t, expectedStorageConfig, expectedRaftConfig)
+		initFile(t, expectedStorageConfig, expectedRaftConfig)
 		config, err := LoadConfiguration()
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, errDuplicateNodeID)
@@ -122,7 +122,7 @@ func TestViperConfig(t *testing.T) {
 	})
 
 	t.Run("kqueuey configuration file validation failed due to duplicate node port", func(t *testing.T) {
-		defer configFileCleanUp()
+		defer cleanUp()
 		TestFlag = 1
 
 		expectedStorageConfig := StorageConfigTest{NumCompactors: 1, CompressionType: "snappy", SyncWrites: false}
@@ -148,7 +148,7 @@ func TestViperConfig(t *testing.T) {
 				},
 			},
 		}
-		setUpTestConfigFile(t, expectedStorageConfig, expectedRaftConfig)
+		initFile(t, expectedStorageConfig, expectedRaftConfig)
 		config, err := LoadConfiguration()
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, errDuplicateNodePort)
@@ -156,7 +156,7 @@ func TestViperConfig(t *testing.T) {
 	})
 
 	t.Run("kqueuey configuration file validation failed due to duplicate node port", func(t *testing.T) {
-		defer configFileCleanUp()
+		defer cleanUp()
 		TestFlag = 1
 
 		expectedStorageConfig := StorageConfigTest{NumCompactors: 1, CompressionType: "snappy", SyncWrites: false}
@@ -182,7 +182,7 @@ func TestViperConfig(t *testing.T) {
 				},
 			},
 		}
-		setUpTestConfigFile(t, expectedStorageConfig, expectedRaftConfig)
+		initFile(t, expectedStorageConfig, expectedRaftConfig)
 		config, err := LoadConfiguration()
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, errDuplicateStoragePath)
@@ -190,7 +190,7 @@ func TestViperConfig(t *testing.T) {
 	})
 
 	t.Run("kqueuey configuration file validation failed due to duplicate cluster id", func(t *testing.T) {
-		defer configFileCleanUp()
+		defer cleanUp()
 		TestFlag = 1
 
 		expectedStorageConfig := StorageConfigTest{NumCompactors: 1, CompressionType: "snappy", SyncWrites: false}
@@ -216,7 +216,7 @@ func TestViperConfig(t *testing.T) {
 				},
 			},
 		}
-		setUpTestConfigFile(t, expectedStorageConfig, expectedRaftConfig)
+		initFile(t, expectedStorageConfig, expectedRaftConfig)
 		config, err := LoadConfiguration()
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, errRaftClusterIdNotFound)
@@ -224,7 +224,7 @@ func TestViperConfig(t *testing.T) {
 	})
 
 	t.Run("kqueuey configuration file validation failed due to unkown node address", func(t *testing.T) {
-		defer configFileCleanUp()
+		defer cleanUp()
 		TestFlag = 1
 
 		expectedStorageConfig := StorageConfigTest{NumCompactors: 1, CompressionType: "snappy", SyncWrites: false}
@@ -250,7 +250,7 @@ func TestViperConfig(t *testing.T) {
 				},
 			},
 		}
-		setUpTestConfigFile(t, expectedStorageConfig, expectedRaftConfig)
+		initFile(t, expectedStorageConfig, expectedRaftConfig)
 		config, err := LoadConfiguration()
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, errUnknownNodeAddress)
@@ -258,7 +258,7 @@ func TestViperConfig(t *testing.T) {
 	})
 
 	t.Run("kqueuey configuration file validation failed due to missing node id", func(t *testing.T) {
-		defer configFileCleanUp()
+		defer cleanUp()
 		TestFlag = 1
 
 		expectedStorageConfig := StorageConfigTest{NumCompactors: 1, CompressionType: "snappy", SyncWrites: false}
@@ -284,7 +284,7 @@ func TestViperConfig(t *testing.T) {
 				},
 			},
 		}
-		setUpTestConfigFile(t, expectedStorageConfig, expectedRaftConfig)
+		initFile(t, expectedStorageConfig, expectedRaftConfig)
 		config, err := LoadConfiguration()
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, errNodeIdNotFound)
@@ -292,7 +292,7 @@ func TestViperConfig(t *testing.T) {
 	})
 
 	t.Run("kqueuey configuration file validation failed due missing storage directory for node", func(t *testing.T) {
-		defer configFileCleanUp()
+		defer cleanUp()
 		TestFlag = 1
 
 		expectedStorageConfig := StorageConfigTest{NumCompactors: 1, CompressionType: "snappy", SyncWrites: false}
@@ -318,7 +318,7 @@ func TestViperConfig(t *testing.T) {
 				},
 			},
 		}
-		setUpTestConfigFile(t, expectedStorageConfig, expectedRaftConfig)
+		initFile(t, expectedStorageConfig, expectedRaftConfig)
 		config, err := LoadConfiguration()
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, errNodeStorageDirNotFound)
@@ -326,14 +326,14 @@ func TestViperConfig(t *testing.T) {
 	})
 }
 
-func setUpTestConfigFile(t *testing.T, storageConfig StorageConfigTest, raftConfig RaftConfigTest) {
+func initFile(t *testing.T, storageConfig StorageConfigTest, raftConfig RaftConfigTest) {
 	c := ConfigTest{Storage: storageConfig, Raft: raftConfig}
 	o, err := yaml.Marshal(&c)
 	assert.NoError(t, err)
-	err = os.WriteFile("kqueuey-config.yaml", o, 0644)
+	err = os.WriteFile("kqueuey-config.yaml", o, 0600)
 	assert.NoError(t, err)
 }
 
-func configFileCleanUp() {
+func cleanUp() {
 	_ = os.Remove("kqueuey-config.yaml")
 }

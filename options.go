@@ -30,6 +30,6 @@ func checkCompressionType(compressionType string) CompressionOrdinal {
 		return ZSTD
 	}
 
-	// If the compression type set to badgers default compression type.
+	// If the compression type not set or invalid compression, set to badgers default compression type.
 	return Snappy
 }
