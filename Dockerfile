@@ -9,7 +9,7 @@ COPY . .
 
 ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
 
-RUN go build -o kqueuey ./cmd
+RUN go build -o ./bin/kqueuey ./cmd
 
 FROM debian:12
 

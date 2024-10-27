@@ -11,9 +11,9 @@ const (
 
 // Compression types badgerDB supports.
 const (
-	CompressionNone   = "None"
-	CompressionSnappy = "Snappy"
-	CompressionZSTD   = "ZSTD"
+	CompressionNone   = "none"
+	CompressionSnappy = "snappy"
+	CompressionZSTD   = "zstd"
 )
 
 //lint:ignore U1000 Ignore unused function temporarily.

@@ -1,16 +1,19 @@
 package kqueuey
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"strings"
 
-	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 )
 
 var (
-	TestFlag    uint8
-	SearchPaths = []string{SearchPath0, SearchPath1, SearchPath2, SearchPath3}
+	TestFlag    uint
+	SearchPaths = []string{SearchPath0, SearchPath1, SearchPath2, SearchPath3, SearchPath4}
+
+	errConfigFileNotLocated = fmt.Errorf("config file not found, valid paths: %v", SearchPaths)
 )
 
 const (
@@ -18,22 +21,31 @@ const (
 	SearchPath1 = "/etc/config/"
 	SearchPath2 = "/var/lib/config/"
 	SearchPath3 = "/data/"
+	SearchPath4 = "config.yaml"
+
+	ConfigType = "yaml"
 )
 
 type Configuration struct {
-	BadgerOpts BadgerDB `mapstructure:"badgerDB"`
+	BadgerOpts BadgerDB `mapstructure:"storage"`
 	RaftOpts   Raft     `mapstructure:"raft"`
 }
 
 type BadgerDB struct {
-	StorePath       []string `mapstructure:"kv-store-path"`
-	NumCompactors   int      `mapstructure:"num-compactors"`
-	CompressionType string   `mapstructure:"compression-type"`
-	SyncWrites      bool     `mapstructure:"sync-writes"`
+	NumCompactors   int    `mapstructure:"num_compactors"`
+	CompressionType string `mapstructure:"compression_type"`
+	SyncWrites      bool   `mapstructure:"sync_writes"`
 }
 
 type Raft struct {
-	Nodes []map[string]any `mapstructure:"nodes"`
+	ClusterID string `mapstructure:"cluster_id"`
+	Nodes     []Node `mapstructure:"nodes"`
+}
+
+type Node struct {
+	Id         string `mapstructure:"id"`
+	BindAddr   string `mapstructure:"bind_addr"`
+	StorageDir string `mapstructure:"storage_dir"`
 }
 
 func LoadConfiguration() (*Configuration, error) {
@@ -44,9 +56,17 @@ func LoadConfiguration() (*Configuration, error) {
 		return nil, err
 	}
 
+	if len(v.ConfigFileUsed()) == 0 {
+		return nil, errConfigFileNotLocated
+	}
+
 	var config Configuration
 	err = v.Unmarshal(&config)
 	if err != nil {
+		return nil, err
+	}
+
+	if err = config.Validate(); err != nil {
 		return nil, err
 	}
 
@@ -55,42 +75,70 @@ func LoadConfiguration() (*Configuration, error) {
 
 func getViper() *viper.Viper {
 	v := viper.New()
-	setDefault(v)
-	v.SetConfigType("yaml")
-	v.SetConfigFile("kqueuey-config.yaml")
+	setDefaults(v)
+	v.SetConfigType(ConfigType)
 
-	// Testing path.
 	if TestFlag == 1 {
-		homeDir, _ := os.UserHomeDir()
-		v.AddConfigPath(homeDir)
-		v.AddConfigPath("/integration/")
+		pwd, err := os.Getwd()
+		if err == nil {
+			v.AddConfigPath(pwd + "/integration/")
+		}
+		v.AddConfigPath("config.yaml")
 	} else {
-		// Currently acceptable paths to obtain kqueuey config.
 		for _, path := range SearchPaths {
 			v.AddConfigPath(path)
 		}
 	}
 
-	watchForConfigUpdates(v)
-
 	return v
 }
 
-// watch enables hot reloading to accommodate changes in the config.
-// Such as scaling up nodes for raft or updating existing values.
-// This ensures that raft can dynamically recognize new nodes joining the cluster while the server remains active.
-func watchForConfigUpdates(c *viper.Viper) {
-	// Send a ReadinConfig notice to allow viper to re-load the configuration file from disk when a change occurred.
-	c.WatchConfig()
-	c.OnConfigChange(func(e fsnotify.Event) {
-		err := viper.ReadInConfig()
-		if err != nil {
-			fmt.Println("issue")
-		}
-	})
+func setDefaults(v *viper.Viper) {
+	v.SetDefault("storage.num_compactors", 4)
+	v.SetDefault("storage.compression_type", CompressionSnappy)
 }
 
-func setDefault(v *viper.Viper) {
-	v.SetDefault("badgerDB.num-compactors", 4)
-	v.SetDefault("badgerDB.compression-type", Snappy)
+// Validate ensures that the config file is set up correctly, to allow proper start up of queue server.
+func (c *Configuration) Validate() error {
+	if c.BadgerOpts.NumCompactors < 4 {
+		c.BadgerOpts.NumCompactors = 4
+	}
+
+	if c.RaftOpts.ClusterID == "" {
+		return errors.New("cluster id was not found")
+	}
+
+	duplicates := make(map[string]uint8)
+	for _, node := range c.RaftOpts.Nodes {
+		splitAddr := strings.Split(node.BindAddr, ":")
+		duplicates[node.StorageDir] += 1
+		duplicates[node.Id] += 1
+
+		if duplicates[node.StorageDir] >= 2 {
+			return errors.New("storage path must be unique per node to avoid file locking conflicts")
+		}
+
+		if duplicates[node.Id] >= 2 {
+			return errors.New("node id must be unique per node to conform to rafts consensus protocol")
+		}
+
+		if node.Id == "" {
+			return errors.New("node id not found")
+		}
+
+		if node.StorageDir == "" {
+			return errors.New("node id not found")
+		}
+
+		if len(splitAddr) != 2 || len(splitAddr[1]) < 4 {
+			return errors.New("unknown raft address")
+		}
+
+		duplicates[splitAddr[1]] += 1
+		if duplicates[splitAddr[1]] == 2 {
+			return errors.New("node port most be unique to allow proper communication between nodes")
+		}
+	}
+
+	return nil
 }

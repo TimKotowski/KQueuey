@@ -14,3 +14,7 @@ print-go-version:
 
 build-release:
 	go build -o ./bin/kqueuey ./cmd
+
+run-with-flag:
+	@go build -o ./bin/kqueuey ./cmd
+	@./bin/kqueuey -test-flag=1
