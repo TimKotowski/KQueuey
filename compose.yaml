@@ -1,0 +1,10 @@
+---
+services:
+  kqueuey:
+    image: Dockerfile
+    volumes:
+      - ./queuey-config.yaml:/var/lib/queuey-config.yaml
+
+configs:
+  data:
+    file: queuey-config.yaml

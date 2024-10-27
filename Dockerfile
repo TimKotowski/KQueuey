@@ -1,17 +1,22 @@
 FROM golang:1.23.2-bullseye as builder
 
-WORKDIR /kqueuey
+WORKDIR /build
 
-COPY go.mod go.sum
+COPY go.mod go.sum ./
+RUN go mod download
 
 COPY . .
 
-ENV CGO_ENABLED=0
+ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
 
-RUN go build -o /kqueuey .
+RUN go build -o ./bin/kqueuey ./cmd
 
-FROM gcr.io/distroless/static-debian12
+FROM debian:12
 
-COPY --from=builder /kqueuey .
+RUN useradd -m -u 777 kqueuey
 
-CMD ["./kqueuey"]
+COPY --from=builder /build/kqueuey /
+
+USER kqueuey
+
+CMD ["/kqueuey"]
