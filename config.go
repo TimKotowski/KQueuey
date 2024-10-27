@@ -91,6 +91,7 @@ func getViper() *viper.Viper {
 		if err == nil {
 			v.AddConfigPath(pwd + "/integration/")
 		}
+		v.AddConfigPath(".")
 	} else {
 		for _, path := range SearchPaths {
 			v.AddConfigPath(path)

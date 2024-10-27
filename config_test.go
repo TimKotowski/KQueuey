@@ -330,10 +330,10 @@ func setUpTestConfigFile(t *testing.T, storageConfig StorageConfigTest, raftConf
 	c := ConfigTest{Storage: storageConfig, Raft: raftConfig}
 	o, err := yaml.Marshal(&c)
 	assert.NoError(t, err)
-	err = os.WriteFile("integration/kqueuey-config.yaml", o, 0644)
+	err = os.WriteFile("kqueuey-config.yaml", o, 0644)
 	assert.NoError(t, err)
 }
 
 func configFileCleanUp() {
-	_ = os.Remove("integration/kqueuey-config.yaml")
+	_ = os.Remove("kqueuey-config.yaml")
 }
