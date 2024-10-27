@@ -11,7 +11,7 @@ import (
 
 var (
 	TestFlag    uint
-	SearchPaths = []string{SearchPath0, SearchPath1, SearchPath2, SearchPath3, SearchPath4}
+	SearchPaths = []string{SearchPath0, SearchPath1, SearchPath2, SearchPath3}
 
 	errConfigFileNotLocated   = fmt.Errorf("config file not found, valid paths: %v", SearchPaths)
 	errDuplicateStoragePath   = errors.New("storage path must be unique per node to avoid file locking conflicts")
@@ -28,9 +28,9 @@ const (
 	SearchPath1 = "/etc/config/"
 	SearchPath2 = "/var/lib/config/"
 	SearchPath3 = "/data/"
-	SearchPath4 = "config.yaml"
 
-	ConfigType = "yaml"
+	ConfigType     = "yaml"
+	ConfigFileName = "kqueuey-config"
 )
 
 type Configuration struct {
@@ -56,35 +56,33 @@ type NodeConfig struct {
 }
 
 func LoadConfiguration() (*Configuration, error) {
-	v := getViper()
+	v := initializeViper()
 
-	err := v.ReadInConfig()
-	if err != nil {
+	if err := v.ReadInConfig(); err != nil {
 		return nil, err
 	}
 
-	if len(v.ConfigFileUsed()) == 0 {
+	if v.ConfigFileUsed() == "" {
 		return nil, errConfigFileNotLocated
 	}
 
 	var config Configuration
-	err = v.Unmarshal(&config)
-	if err != nil {
+	if err := v.Unmarshal(&config); err != nil {
 		return nil, err
 	}
 
-	if err = config.validate(); err != nil {
+	if err := config.validate(); err != nil {
 		return nil, err
 	}
 
 	return &config, nil
 }
 
-func getViper() *viper.Viper {
+func initializeViper() *viper.Viper {
 	v := viper.New()
 	setDefaults(v)
 	v.SetConfigType(ConfigType)
-	v.SetConfigName("kqueuey-config")
+	v.SetConfigName(ConfigFileName)
 
 	if TestFlag == 1 {
 		pwd, err := os.Getwd()
@@ -112,24 +110,20 @@ func (c *Configuration) validate() error {
 		c.BadgerOpts.NumCompactors = 4
 	}
 
-	if c.RaftOpts.ClusterID == "" {
+	if err := c.RaftOpts.validateRaftConfigOptions(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *RaftConfig) validateRaftConfigOptions() error {
+	if r.ClusterID == "" {
 		return errRaftClusterIdNotFound
 	}
 
 	duplicates := make(map[string]uint8)
-	for _, node := range c.RaftOpts.Nodes {
-		splitAddr := strings.Split(node.BindAddr, ":")
-		duplicates[node.StorageDir] += 1
-		duplicates[node.Id] += 1
-
-		if duplicates[node.StorageDir] >= 2 {
-			return errDuplicateStoragePath
-		}
-
-		if duplicates[node.Id] >= 2 {
-			return errDuplicateNodeID
-		}
-
+	for _, node := range r.Nodes {
 		if node.Id == "" {
 			return errNodeIdNotFound
 		}
@@ -138,12 +132,24 @@ func (c *Configuration) validate() error {
 			return errNodeStorageDirNotFound
 		}
 
-		if len(splitAddr) != 2 || len(splitAddr[1]) < 4 {
+		duplicates[node.StorageDir] += 1
+		if duplicates[node.StorageDir] >= 2 {
+			return errDuplicateStoragePath
+		}
+
+		duplicates[node.Id] += 1
+		if duplicates[node.Id] >= 2 {
+			return errDuplicateNodeID
+		}
+
+		splitAddr := strings.Split(node.BindAddr, ":")
+		port := splitAddr[1]
+		if len(splitAddr) != 2 || len(port) < 4 {
 			return errUnknownNodeAddress
 		}
-		duplicates[splitAddr[1]] += 1
 
-		if duplicates[splitAddr[1]] == 2 {
+		duplicates[port] += 1
+		if duplicates[port] == 2 {
 			return errDuplicateNodePort
 		}
 	}
