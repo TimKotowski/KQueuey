@@ -1,5 +1,4 @@
-
-![Screenshot 2024-10-27 at 11 09 32 PM](https://github.com/user-attachments/assets/45948a24-753e-4939-8b39-24e8cb1f966e)
+# Kqueuey
 
 # Simple, fault tolerant, highly distrubuted message queue.
 
