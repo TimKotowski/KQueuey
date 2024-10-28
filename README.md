@@ -6,11 +6,10 @@
  Ability to queue messages and poll messages between software components with message deadline.
 
 ### Overview
-   1. Applicaiton compontents send messages to client to distribute messages to leader node.
-   2. Leader node recieves messages, and sends message back what ever compontent of polling messages with deadline.
-   3. Client recieve message from leader node and sends to application compontents polling messages.
-   4. Applicaiton compontents process messages, send tombstone back to send messages are not resent.
-   5. Applicaiton compontents process message passed deadline, message is resent to compontents.
+   1. Client distributes sent messages to leader node.
+   2. Leader node recieves messages, and sends batch messages back to what ever worker is polling messages with deadline.
+   3. Client recieves messages from leader node.
+   4. Clients process messages, and sends tombstones back to prevent any messages being resent, or if deadline is reach, message is re-received.
 
 
 ![skqueuey](https://github.com/user-attachments/assets/efab74b1-67ac-4abe-8b21-dddf8cf2db8c)
