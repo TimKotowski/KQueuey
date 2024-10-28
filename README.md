@@ -1,4 +1,7 @@
-# KQueuey
+
+![Screenshot 2024-10-27 at 11 09 32 PM](https://github.com/user-attachments/assets/45948a24-753e-4939-8b39-24e8cb1f966e)
+
+# Simple, fault tolerant, highly distrubuted message queue.
 
  KQueuey is a distributed message queue, with data replication for fault tolerance. Kqueuey uses the Raft Consensus Algorithm 
  to allow messages to be replicated to other machines, to maintain high availability and reliability if a leader is down. To ensure
