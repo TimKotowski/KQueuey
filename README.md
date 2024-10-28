@@ -5,3 +5,9 @@ to allow messages to be replicated to other machines, to maintain high availabil
 messages can still be processed. Kqueuey uses a similar queuing model as AWS SQS, with visibility timeouts, 
 and ability to send and receive messages between software components. Standard queue type is used. Messages are guaranteed 
 to be delivered at least once.
+
+
+
+
+
+![Screenshot 2024-10-27 at 10 52 39 PM](https://github.com/user-attachments/assets/19e59234-a566-4083-b2cf-c4df530bd8ef)
