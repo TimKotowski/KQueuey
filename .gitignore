@@ -5,3 +5,4 @@ kqueuey-config-example.yaml
 
 # Binaries built from ./cmd
 bin
+.DS_Store
