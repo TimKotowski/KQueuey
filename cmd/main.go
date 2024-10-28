@@ -1,3 +1,9 @@
 package main
 
-func main() {}
+import (
+	"kqueuey"
+)
+
+func main() {
+	kqueuey.RegisterFlags()
+}

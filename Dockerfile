@@ -15,8 +15,8 @@ FROM debian:12
 
 RUN useradd -m -u 777 kqueuey
 
-COPY --from=builder /build/kqueuey /
+COPY --from=builder /build/bin/kqueuey /
 
 USER kqueuey
 
-CMD ["/kqueuey"]
+ENTRYPOINT ["/kqueuey"]
