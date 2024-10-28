@@ -8,7 +8,6 @@
 ### Overview
    1. Client distributes messages to leader node.
    2. Leader node recieves messages, and sends batch messages back to what ever client is polling messages.
-   3. Client recieves messages from leader node.
    4. Clients process messages, and sends tombstones back to prevent any messages being resent, or if deadline is reach, message is re-received.
 
 
