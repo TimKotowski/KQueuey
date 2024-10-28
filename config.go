@@ -2,17 +2,18 @@ package kqueuey
 
 import (
 	"errors"
-	"fmt"
+	"flag"
 	"strings"
 
 	"github.com/spf13/viper"
 )
 
 var (
-	TestFlag    uint
-	SearchPaths = []string{SearchPath0, SearchPath1, SearchPath2, SearchPath3}
+	ConfigPath     string
+	configDirUsage = "set the path to the kqueuey-config.yaml configuration file, default: /usr/local/etc/"
 
-	errConfigFileNotLocated   = fmt.Errorf("config file not found, valid paths: %v", SearchPaths)
+	// Todo revise this.
+	errConfigFileNotLocated   = errors.New("config not found, set path to look for config file: default /usr/local/etc/")
 	errDuplicateStoragePath   = errors.New("storage path must be unique per node to avoid file locking conflicts")
 	errDuplicateNodeId        = errors.New("node id must be unique per node to conform to rafts consensus protocol")
 	errDuplicateNodePort      = errors.New("node port most be unique to allow proper communication between nodes")
@@ -23,11 +24,6 @@ var (
 )
 
 const (
-	SearchPath0 = "/config/"
-	SearchPath1 = "/etc/config/"
-	SearchPath2 = "/var/lib/config/"
-	SearchPath3 = "/data/"
-
 	ConfigType     = "yaml"
 	ConfigFileName = "kqueuey-config"
 )
@@ -78,10 +74,12 @@ func initializeViper() *viper.Viper {
 	setDefaults(v)
 	v.SetConfigType(ConfigType)
 	v.SetConfigName(ConfigFileName)
+	viper.AutomaticEnv()
 
-	for _, path := range SearchPaths {
-		v.AddConfigPath(path)
-	}
+	// Define multiple search options for getting the configuration, from directory path.
+	envConfigDirPath := v.GetString("CONFIG_PATH")
+	v.AddConfigPath(envConfigDirPath)
+	v.AddConfigPath(ConfigPath)
 
 	return v
 }
@@ -89,6 +87,12 @@ func initializeViper() *viper.Viper {
 func setDefaults(v *viper.Viper) {
 	v.SetDefault("storage.num_compactors", 4)
 	v.SetDefault("storage.compression_type", CompressionSnappy)
+	v.SetDefault("CONFIG_PATH", "/usr/local/etc/")
+}
+
+func RegisterFlags() {
+	flag.StringVar(&ConfigPath, "config", "/usr/local/etc/", configDirUsage)
+	flag.Parse()
 }
 
 // Validate ensures that the config file is set up correctly, to allow proper start up of queue server.
