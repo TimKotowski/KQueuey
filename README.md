@@ -3,7 +3,7 @@
 # highly distrubuted, simple message queue.
 
  KQueuey is a simple distributed message queue, with data replication using Raft Consensus Algorithm.
- Ability to queue messages and poll messages between software components with message deadline.
+ Ability to queue messages and poll messages between software components with deadlines to ensure a message is finished or re-processed.
 
 ### Overview
    1. Client distributes messages to leader node.
