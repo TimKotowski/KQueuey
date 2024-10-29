@@ -10,4 +10,5 @@
    2. Leader node recieves messages, and sends batch messages back to what ever client is polling messages.
    4. Clients process messages, and sends tombstones back to prevent any messages being resent, or if deadline is reached, message is re-received to any client polling messages.
 
-      ![kqueuey](https://github.com/user-attachments/assets/3c419dc2-a49f-4826-b1da-2e97afb67e94)
+
+![kqueuey](https://github.com/user-attachments/assets/a9a0cca6-f4f7-4431-882b-a686bae0d34c)
