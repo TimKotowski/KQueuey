@@ -1,7 +1,7 @@
 .idea
 
 coverage.txt
-./kqueuey-config.yaml
+kqueuey-config.yaml
 
 # Binaries built from ./cmd
 bin
