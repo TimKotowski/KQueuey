@@ -1,10 +1,13 @@
 ---
 services:
   kqueuey:
-    image: Dockerfile
+    build:
+      dockerfile: Dockerfile
+      context: .
+    command: |
+      -logLevel=debug
+      -logFormat=json
+    environment:
+      CONFIG_PATH: "."
     volumes:
-      - ./queuey-config.yaml:/var/lib/queuey-config.yaml
-
-configs:
-  data:
-    file: queuey-config.yaml
+      - ./kqueuey-config.yaml:/kqueuey-config.yaml
