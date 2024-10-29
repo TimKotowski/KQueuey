@@ -7,7 +7,7 @@ RUN go mod download
 
 COPY . .
 
-ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
+ENV CGO_ENABLED=0
 
 RUN go build -o ./bin/kqueuey ./cmd
 

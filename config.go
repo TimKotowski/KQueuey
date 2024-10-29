@@ -2,16 +2,13 @@ package kqueuey
 
 import (
 	"errors"
-	"flag"
+	"log/slog"
 	"strings"
 
 	"github.com/spf13/viper"
 )
 
 var (
-	ConfigPath     string
-	configDirUsage = "set the path to the kqueuey-config.yaml configuration file, default: /usr/local/etc/"
-
 	// Todo revise this.
 	errConfigFileNotLocated   = errors.New("config not found, set path to look for config file: default /usr/local/etc/")
 	errDuplicateStoragePath   = errors.New("storage path must be unique per node to avoid file locking conflicts")
@@ -29,29 +26,29 @@ const (
 )
 
 type Configuration struct {
-	BadgerOpts BadgerDBConfig `mapstructure:"storage"`
-	RaftOpts   RaftConfig     `mapstructure:"raft"`
+	BadgerOpts Storage `mapstructure:"storage"`
+	RaftOpts   Raft    `mapstructure:"raft"`
 }
 
-type BadgerDBConfig struct {
+type Storage struct {
 	NumCompactors   int    `mapstructure:"num_compactors"`
 	CompressionType string `mapstructure:"compression_type"`
 	SyncWrites      bool   `mapstructure:"sync_writes"`
 }
 
-type RaftConfig struct {
-	ClusterId string       `mapstructure:"cluster_id"`
-	Nodes     []NodeConfig `mapstructure:"nodes"`
+type Raft struct {
+	ClusterId string     `mapstructure:"cluster_id"`
+	Nodes     []RaftNode `mapstructure:"nodes"`
 }
 
-type NodeConfig struct {
+type RaftNode struct {
 	Id         string `mapstructure:"id"`
 	BindAddr   string `mapstructure:"bind_addr"`
 	StorageDir string `mapstructure:"storage_dir"`
 }
 
-func LoadConfiguration() (*Configuration, error) {
-	v := initializeViper()
+func LoadConfiguration(flagOpts FlagOpts, logger *slog.Logger) (*Configuration, error) {
+	v := initializeViper(flagOpts)
 
 	if err := v.ReadInConfig(); err != nil {
 		return nil, errConfigFileNotLocated
@@ -62,24 +59,26 @@ func LoadConfiguration() (*Configuration, error) {
 		return nil, err
 	}
 
-	if err := config.validate(); err != nil {
+	if err := config.validate(logger); err != nil {
 		return nil, err
 	}
 
 	return &config, nil
 }
 
-func initializeViper() *viper.Viper {
+func initializeViper(flagOpts FlagOpts) *viper.Viper {
 	v := viper.New()
 	setDefaults(v)
+	setBinds(v)
+
+	v.AutomaticEnv()
 	v.SetConfigType(ConfigType)
 	v.SetConfigName(ConfigFileName)
-	viper.AutomaticEnv()
 
 	// Define multiple search options for getting the configuration, from directory path.
-	envConfigDirPath := v.GetString("CONFIG_PATH")
-	v.AddConfigPath(envConfigDirPath)
-	v.AddConfigPath(ConfigPath)
+	envVariableConfigPath := v.GetString("CONFIG_PATH")
+	v.AddConfigPath(envVariableConfigPath)
+	v.AddConfigPath(flagOpts.ConfigPath)
 
 	return v
 }
@@ -87,17 +86,19 @@ func initializeViper() *viper.Viper {
 func setDefaults(v *viper.Viper) {
 	v.SetDefault("storage.num_compactors", 4)
 	v.SetDefault("storage.compression_type", CompressionSnappy)
+	// Allow setting multiple options to get a config path to read config yaml file. Can be from flags or ENV variables.
+	// This is for setting default location to look for config option if not found in ENV.
 	v.SetDefault("CONFIG_PATH", "/usr/local/etc/")
 }
 
-func RegisterFlags() {
-	flag.StringVar(&ConfigPath, "config", "/usr/local/etc/", configDirUsage)
-	flag.Parse()
+func setBinds(v *viper.Viper) {
+	v.BindEnv("CONFIG_PATH")
 }
 
 // Validate ensures that the config file is set up correctly, to allow proper start up of queue server.
-func (c *Configuration) validate() error {
+func (c *Configuration) validate(logger *slog.Logger) error {
 	if c.BadgerOpts.NumCompactors < 4 {
+		logger.Warn("badger's compactors was below minimum required amount of 4. Defaulting to 4")
 		c.BadgerOpts.NumCompactors = 4
 	}
 
@@ -108,7 +109,7 @@ func (c *Configuration) validate() error {
 	return nil
 }
 
-func (r *RaftConfig) validateRaftConfigOptions() error {
+func (r *Raft) validateRaftConfigOptions() error {
 	if r.ClusterId == "" {
 		return errRaftClusterIdNotFound
 	}
