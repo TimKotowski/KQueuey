@@ -92,7 +92,7 @@ func setDefaults(v *viper.Viper) {
 }
 
 func setBinds(v *viper.Viper) {
-	v.BindEnv("CONFIG_PATH")
+	_ = v.BindEnv("CONFIG_PATH")
 }
 
 // Validate ensures that the config file is set up correctly, to allow proper start up of queue server.
