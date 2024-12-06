@@ -2,7 +2,7 @@
 
 # highly distributed, simple message queue.
 
- KQueuey is a simple distributed message queue buily in Go, with data replication using Raft Consensus Algorithm.
+ KQueuey is a simple distributed message queue built in Go, with data replication using Raft Consensus Algorithm.
  Ability to queue messages and poll messages between software components with deadlines to ensure a message is finished or re-processed.
 
 ### High Level Overview
