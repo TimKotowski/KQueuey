@@ -25,6 +25,7 @@ type LogHandler struct {
 	j jsoniter.API
 }
 
+
 func (l *Logging) NewLogger() *slog.Logger {
 	opts := &slog.HandlerOptions{}
 	opts.Level = l.getLevel()
